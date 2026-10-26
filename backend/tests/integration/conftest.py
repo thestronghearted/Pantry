@@ -52,6 +52,7 @@ def make_settings(**overrides) -> Settings:
         probe_password=PROBE_PASSWORD,
         rate_limit_per_minute=10,
         environment="test",
+        app_version="sha-test123",
     )
     base.update(overrides)
     return Settings(**base)

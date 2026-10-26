@@ -18,7 +18,7 @@ def counter(journey: str, outcome: str, synthetic: str = "false") -> float:
 
 
 def test_health_and_ready(client):
-    assert client.get("/health").json() == {"status": "ok"}
+    assert client.get("/health").json() == {"status": "ok", "version": "sha-test123"}
     assert client.get("/ready").json() == {"status": "ready"}
 
 

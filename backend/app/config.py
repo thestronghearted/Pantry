@@ -16,6 +16,7 @@ class Settings:
     session_secret: str = field(default_factory=lambda: os.environ.get("SESSION_SECRET", "dev-only-change-me"))
     admin_token: str | None = field(default_factory=lambda: os.environ.get("ADMIN_TOKEN") or None)
     environment: str = field(default_factory=lambda: os.environ.get("ENVIRONMENT", "local"))
+    app_version: str = field(default_factory=lambda: os.environ.get("APP_VERSION", "dev"))
     cookie_secure: bool = field(default_factory=lambda: _bool("COOKIE_SECURE", False))
     trust_proxy: bool = field(default_factory=lambda: _bool("TRUST_PROXY", False))
     rate_limit_per_minute: int = field(default_factory=lambda: int(os.environ.get("RATE_LIMIT_PER_MINUTE", "10")))
