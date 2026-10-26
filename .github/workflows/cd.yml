@@ -1,7 +1,7 @@
 name: CD
 
 # main -> test -> build one image tagged with the commit -> deploy to dev automatically
-#      -> wait for a reviewer to approve the "production" environment -> promote the SAME image to prod.
+#      -> wait for a reviewer to approve the "prod" environment -> promote the SAME image to prod.
 on:
   push:
     branches: [main]
@@ -68,12 +68,12 @@ jobs:
         run: bash scripts/ci/deploy.sh
 
   deploy-prod:
-    name: Deploy to production (manual approval)
+    name: Deploy to prod (manual approval)
     needs: [build, deploy-dev]
     runs-on: ubuntu-latest
-    # Configure required reviewers on this environment in GitHub: Settings -> Environments -> production.
+    # Configure required reviewers on this environment in GitHub: Settings -> Environments -> prod.
     environment:
-      name: production
+      name: prod
       url: ${{ vars.PROD_URL }}
     steps:
       - uses: actions/checkout@v4

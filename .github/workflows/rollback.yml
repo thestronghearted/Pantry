@@ -7,7 +7,7 @@ on:
       environment:
         description: Where to roll back
         type: choice
-        options: [dev, production]
+        options: [dev, prod]
         required: true
       image_tag:
         description: "Image tag to restore, e.g. sha-1a2b3c4"
@@ -20,7 +20,7 @@ jobs:
   rollback:
     name: Roll ${{ inputs.environment }} back to ${{ inputs.image_tag }}
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}   # production still requires approval
+    environment: ${{ inputs.environment }}   # prod still requires approval
     steps:
       - uses: actions/checkout@v4
       - name: Validate the tag looks like one we publish
@@ -31,8 +31,8 @@ jobs:
           esac
       - name: Redeploy
         env:
-          DEPLOY_HOOK: ${{ inputs.environment == 'production' && secrets.RENDER_PROD_DEPLOY_HOOK || secrets.RENDER_DEV_DEPLOY_HOOK }}
-          BASE_URL: ${{ inputs.environment == 'production' && vars.PROD_URL || vars.DEV_URL }}
+          DEPLOY_HOOK: ${{ inputs.environment == 'prod' && secrets.RENDER_PROD_DEPLOY_HOOK || secrets.RENDER_DEV_DEPLOY_HOOK }}
+          BASE_URL: ${{ inputs.environment == 'prod' && vars.PROD_URL || vars.DEV_URL }}
           REPO: ${{ github.repository }}
           TAG: ${{ inputs.image_tag }}
         run: |
