@@ -1,0 +1,13 @@
+route:
+  receiver: responder
+  group_by: [alertname]
+  group_wait: 5s        # wake the responder quickly; a real deployment might wait longer
+  group_interval: 1m
+  repeat_interval: 1h   # the responder also de-duplicates by fingerprint
+
+receivers:
+  - name: responder
+    webhook_configs:
+      - url: http://responder:9000/alert
+        send_resolved: false   # recovery should not wake the agent
+        max_alerts: 5

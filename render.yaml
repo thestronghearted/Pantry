@@ -1,0 +1,43 @@
+# Render blueprint: two image-backed web services (dev and prod) that pull the image built by GitHub Actions.
+# The database is a managed Postgres elsewhere (Neon free tier, one branch per environment); see docs/DEPLOY.md.
+# Deploys are triggered by the CD workflow through each service's deploy hook, so autoDeploy is off.
+services:
+  - type: web
+    name: pantry-dev
+    runtime: image
+    image:
+      url: ghcr.io/thestronghearted/pantry-app:latest
+    plan: free
+    autoDeploy: false
+    healthCheckPath: /ready
+    envVars:
+      - key: ENVIRONMENT
+        value: dev
+      - key: DATABASE_URL
+        sync: false          # paste the Neon "dev" connection string in the Render dashboard
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: TRUST_PROXY
+        value: "true"
+
+  - type: web
+    name: pantry-prod
+    runtime: image
+    image:
+      url: ghcr.io/thestronghearted/pantry-app:latest
+    plan: free
+    autoDeploy: false
+    healthCheckPath: /ready
+    envVars:
+      - key: ENVIRONMENT
+        value: prod
+      - key: DATABASE_URL
+        sync: false          # paste the Neon "prod" connection string in the Render dashboard
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: TRUST_PROXY
+        value: "true"

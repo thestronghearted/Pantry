@@ -1,0 +1,14 @@
+.git
+.github
+**/.venv
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+frontend/dist
+backend/*.db
+.env
+incident-reports
+docs
+observability
+responder
+scripts

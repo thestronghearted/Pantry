@@ -1,0 +1,40 @@
+name: Rollback
+
+# Redeploy an earlier image. Find tags under GitHub -> Packages, or in the CD run summaries (sha-xxxxxxx).
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Where to roll back
+        type: choice
+        options: [dev, production]
+        required: true
+      image_tag:
+        description: "Image tag to restore, e.g. sha-1a2b3c4"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  rollback:
+    name: Roll ${{ inputs.environment }} back to ${{ inputs.image_tag }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}   # production still requires approval
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the tag looks like one we publish
+        run: |
+          case "${{ inputs.image_tag }}" in
+            sha-[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]) ;;
+            *) echo "image_tag must look like sha-1a2b3c4"; exit 1 ;;
+          esac
+      - name: Redeploy
+        env:
+          DEPLOY_HOOK: ${{ inputs.environment == 'production' && secrets.RENDER_PROD_DEPLOY_HOOK || secrets.RENDER_DEV_DEPLOY_HOOK }}
+          BASE_URL: ${{ inputs.environment == 'production' && vars.PROD_URL || vars.DEV_URL }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ inputs.image_tag }}
+        run: |
+          export IMAGE="ghcr.io/$(echo "$REPO" | tr '[:upper:]' '[:lower:]')-app:${TAG}"
+          bash scripts/ci/deploy.sh

@@ -1,0 +1,124 @@
+# The whole system, database included, with one command:  py scripts/dev.py up   (or: docker compose up -d --build)
+name: pantry
+
+x-restart: &restart
+  restart: unless-stopped
+
+services:
+  db:
+    <<: *restart
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pantry
+      POSTGRES_DB: pantry
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run py scripts/dev.py up to create .env}
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pantry -d pantry"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    <<: *restart
+    build: .
+    depends_on:
+      db: { condition: service_healthy }
+    environment:
+      DATABASE_URL: postgresql://pantry:${POSTGRES_PASSWORD}@db:5432/pantry
+      SESSION_SECRET: ${SESSION_SECRET:?}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?}
+      PROBE_EMAIL: ${PROBE_EMAIL:?}
+      PROBE_PASSWORD: ${PROBE_PASSWORD:?}
+      ENVIRONMENT: local
+      OTEL_SERVICE_NAME: pantry-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4318
+    ports:
+      - "8080:8000"
+
+  # ---- observability -----------------------------------------------------------------------
+  otel-collector:
+    <<: *restart
+    image: otel/opentelemetry-collector:0.116.1
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./observability/otel-collector.yaml:/etc/otel/config.yaml:ro
+    depends_on: [tempo, loki]
+
+  tempo:
+    <<: *restart
+    image: grafana/tempo:2.6.1
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo.yaml:ro
+
+  loki:
+    <<: *restart
+    image: grafana/loki:3.3.2
+    command: ["-config.file=/etc/loki/config.yaml"]
+    volumes:
+      - ./observability/loki.yaml:/etc/loki/config.yaml:ro
+
+  prometheus:
+    <<: *restart
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --enable-feature=exemplar-storage
+      - --storage.tsdb.retention.time=2d
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports:
+      - "127.0.0.1:9090:9090"
+    depends_on: [app, alertmanager]
+
+  alertmanager:
+    <<: *restart
+    image: prom/alertmanager:v0.27.0
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
+    volumes:
+      - ./observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "127.0.0.1:9093:9093"
+
+  grafana:
+    <<: *restart
+    image: grafana/grafana:11.4.0
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?}
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_DEFAULT_THEME: light
+    volumes:
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on: [prometheus, tempo, loki]
+
+  # ---- on-call agent -----------------------------------------------------------------------
+  responder:
+    <<: *restart
+    build: ./responder
+    environment:
+      APP_URL: http://app:8000
+      PROMETHEUS_URL: http://prometheus:9090
+      LOKI_URL: http://loki:3100
+      ADMIN_TOKEN: ${ADMIN_TOKEN}
+      PROBE_EMAIL: ${PROBE_EMAIL}
+      PROBE_PASSWORD: ${PROBE_PASSWORD}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      RESPONDER_MODEL: ${RESPONDER_MODEL:-claude-sonnet-5-5}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+      GITHUB_REPOSITORY: ${GITHUB_REPOSITORY:-}
+      REPORT_DIR: /reports
+    volumes:
+      - ./incident-reports:/reports
+    ports:
+      - "127.0.0.1:9000:9000"
+    depends_on: [app]
+
+volumes:
+  dbdata:

@@ -1,0 +1,94 @@
+# Run with: promtool test rules observability/alerts_test.yml   (py scripts/dev.py test does this in Docker)
+rule_files:
+  - alerts.yml
+
+evaluation_interval: 15s
+
+tests:
+  - name: fires when real users get server errors
+    interval: 15s
+    input_series:
+      # 2 requests/s in total, a quarter of them failing, all from real users
+      - series: 'journey_requests_total{journey="shopping_list",outcome="success",synthetic="false"}'
+        values: "0+22x40"
+      - series: 'journey_requests_total{journey="shopping_list",outcome="error",synthetic="false"}'
+        values: "0+8x40"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ShoppingListFailureRate
+        exp_alerts:
+          - exp_labels:
+              severity: page
+              journey: shopping_list
+            exp_annotations:
+              summary: "Families cannot get their shopping list"
+              description: "More than 5% of real shopping-list requests failed with a server error over the last 2 minutes (current ratio 26.67%)."
+              runbook: "docs/RUNBOOK.md#shoppinglistfailurerate"
+
+  - name: stays quiet when errors are rare
+    interval: 15s
+    input_series:
+      - series: 'journey_requests_total{journey="shopping_list",outcome="success",synthetic="false"}'
+        values: "0+30x40"
+      - series: 'journey_requests_total{journey="shopping_list",outcome="error",synthetic="false"}'
+        values: "0+1x40"   # about 3%
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ShoppingListFailureRate
+        exp_alerts: []
+
+  - name: ignores synthetic probe failures
+    interval: 15s
+    input_series:
+      - series: 'journey_requests_total{journey="shopping_list",outcome="success",synthetic="false"}'
+        values: "0+20x40"
+      - series: 'journey_requests_total{journey="shopping_list",outcome="error",synthetic="true"}'
+        values: "0+20x40"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ShoppingListFailureRate
+        exp_alerts: []
+
+  - name: client errors do not count
+    interval: 15s
+    input_series:
+      - series: 'journey_requests_total{journey="shopping_list",outcome="success",synthetic="false"}'
+        values: "0+20x40"
+      - series: 'journey_requests_total{journey="shopping_list",outcome="client_error",synthetic="false"}'
+        values: "0+20x40"
+    alert_rule_test:
+      - eval_time: 10m
+        alertname: ShoppingListFailureRate
+        exp_alerts: []
+
+  - name: ignores a handful of failures when almost nobody is using the app
+    interval: 15s
+    input_series:
+      - series: 'journey_requests_total{journey="shopping_list",outcome="error",synthetic="false"}'
+        values: "0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
+      - series: 'journey_requests_total{journey="shopping_list",outcome="success",synthetic="false"}'
+        values: "0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: ShoppingListFailureRate
+        exp_alerts: []
+
+  - name: resolves once the errors stop
+    interval: 15s
+    input_series:
+      - series: 'journey_requests_total{journey="shopping_list",outcome="success",synthetic="false"}'
+        values: "0+22x20 440+30x60"
+      - series: 'journey_requests_total{journey="shopping_list",outcome="error",synthetic="false"}'
+        values: "0+8x20 160+0x60"
+    alert_rule_test:
+      - eval_time: 5m
+        alertname: ShoppingListFailureRate
+        exp_alerts:
+          - exp_labels: {severity: page, journey: shopping_list}
+            exp_annotations:
+              summary: "Families cannot get their shopping list"
+              description: "More than 5% of real shopping-list requests failed with a server error over the last 2 minutes (current ratio 26.67%)."
+              runbook: "docs/RUNBOOK.md#shoppinglistfailurerate"
+      - eval_time: 12m
+        alertname: ShoppingListFailureRate
+        exp_alerts: []
