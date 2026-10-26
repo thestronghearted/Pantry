@@ -21,7 +21,7 @@ This file is the index. Read the doc that matches your task; do not load everyth
 FastAPI + SQLAlchemy + Alembic (Postgres) · React (Vite) served by FastAPI · OpenTelemetry → Collector → Tempo/Loki, Prometheus, Grafana · Responder agent (`responder/`) · GitHub Actions → GHCR → Render.
 
 ## Commands (run from repo root)
-- `py scripts/dev.py up` / `down` — whole system in Docker Compose (app on :8080, Grafana on :3000)
+- `py scripts/dev.py up` / `down` — whole system in Docker Compose (app on :8080, Grafana on :3001)
 - `py scripts/dev.py test` — all tests (starts a throwaway Postgres; needs Docker running)
 - `py scripts/dev.py simulate-incident` — inject the bad release and watch the responder
 - Backend only: `cd backend && py -m pytest tests/unit`

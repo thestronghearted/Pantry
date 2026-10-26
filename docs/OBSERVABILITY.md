@@ -6,7 +6,7 @@
 ## Signals and how they connect
 | Signal | Where it comes from | Where to see it |
 |---|---|---|
-| **Metrics** | `prometheus_client` at `/metrics`: `journey_requests_total{journey,outcome,synthetic}`, `journey_duration_seconds{journey}`, `plan_days_off_target_total` | Prometheus :9090, Grafana dashboard *User journeys* |
+| **Metrics** | `prometheus_client` at `/metrics`: `journey_requests_total{journey,outcome,synthetic}`, `journey_duration_seconds{journey}`, `plan_days_off_target_total` | Prometheus :9091, Grafana dashboard *User journeys* |
 | **Traces** | OpenTelemetry (FastAPI + SQLAlchemy) → Collector → Tempo | Grafana → Explore → Tempo |
 | **Logs** | JSON, one line per request and per journey, via OTLP → Collector → Loki (and stdout) | Grafana → Explore → Loki, panel *Errors from the API* |
 

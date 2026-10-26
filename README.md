@@ -41,8 +41,8 @@ On first run it generates a git-ignored `.env` with random secrets. Then open:
 | What | URL |
 |---|---|
 | The app | http://localhost:8080 |
-| Grafana (dashboard "User journeys") | http://localhost:3000 |
-| Prometheus | http://localhost:9090 |
+| Grafana (dashboard "User journeys") | http://localhost:3001 |
+| Prometheus | http://localhost:9091 |
 | Responder agent incidents | http://localhost:9000/incidents |
 
 Stop with `py scripts/dev.py down` (add `--volumes` to also delete the database).

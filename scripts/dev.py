@@ -102,8 +102,8 @@ def cmd_up(_args: list[str]) -> int:
     print(
         "\nPantry Plan is running:\n"
         "  App         http://localhost:8080\n"
-        "  Grafana     http://localhost:3000   (dashboard: Pantry Plan / User journeys)\n"
-        "  Prometheus  http://localhost:9090\n"
+        "  Grafana     http://localhost:3001   (dashboard: Pantry Plan / User journeys)\n"
+        "  Prometheus  http://localhost:9091\n"
         "  Responder   http://localhost:9000/incidents\n"
         "\nTry the incident drill:  py scripts/dev.py simulate-incident\n"
         "Stop everything:         py scripts/dev.py down\n"

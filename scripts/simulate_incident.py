@@ -25,7 +25,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 APP = "http://localhost:8080"
-PROM = "http://localhost:9090"
+PROM = "http://localhost:9091"
 RESPONDER = "http://localhost:9000"
 TIMEOUT_SECONDS = 420
 
@@ -169,7 +169,7 @@ def main() -> int:
     print()
     if not (seen_alert and seen_incident and recovered_at):
         print("DRILL INCOMPLETE:", {"alert_fired": seen_alert, "responder_ran": seen_incident, "recovered": bool(recovered_at)})
-        print("Check:  py scripts/dev.py logs responder   and   http://localhost:9090/alerts")
+        print("Check:  py scripts/dev.py logs responder   and   http://localhost:9091/alerts")
         return 1
 
     final_flags = admin_client.call("GET", "/admin/flags", headers=admin)[1]
