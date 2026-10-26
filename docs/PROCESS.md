@@ -33,7 +33,7 @@ Backend unit + integration (Postgres service, Alembic upgrade), frontend tests +
 ## 6. CD
 - Merge to `main` builds the image **once**, tags it `sha-<commit>`, pushes it to GHCR.
 - **Dev** deploys automatically.
-- **Prod** deploys the *same tag* after a required reviewer approves the `production` environment.
+- **Prod** deploys the *same tag* after a required reviewer approves the `prod` environment.
 - **Rollback**: run the `rollback` workflow with a previous `sha-…` tag; see `docs/DEPLOY.md`.
 
 ## 7. Incidents
