@@ -127,7 +127,7 @@ Roles, hand-offs and the process: [docs/AGENT_TEAM.md](docs/AGENT_TEAM.md), [doc
 - **Every pull request** runs backend (Postgres), frontend, responder and alert-rule tests, builds the images and checks that the whole system starts. See [.github/workflows/ci.yml](.github/workflows/ci.yml).
 - **Merge to `main`** builds one image tagged `sha-<commit>`, deploys it to **dev** automatically, then waits for a reviewer to approve **prod**, which receives the *same* image. See [cd.yml](.github/workflows/cd.yml).
 - **Rollback**: run the *Rollback* workflow with an earlier `sha-…` tag. See [docs/DEPLOY.md](docs/DEPLOY.md).
-- **Hosting**: Render (app) and Neon (Postgres). Live URLs: see the repository's Environments tab and [docs/DEPLOY.md](docs/DEPLOY.md#live-environments).
+- **Hosting**: Render (app) and Neon (Postgres). Live: [dev](https://pantry-dev-twxv.onrender.com) and [prod](https://pantry-prod.onrender.com) (the free tier sleeps when idle, so the first request can take about a minute). `/health` reports which build is serving (`{"version": "sha-…"}`). More: [docs/DEPLOY.md](docs/DEPLOY.md#live-environments).
 
 ## Limits and honest notes
 

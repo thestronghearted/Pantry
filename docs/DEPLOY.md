@@ -28,8 +28,8 @@ Rollback is safe for the database because migrations are **backward compatible**
 ## Live environments
 | Environment | URL | Status |
 |---|---|---|
-| dev | https://pantry-dev-twxv.onrender.com (`DEV_URL`) | pending first deployment |
-| prod | https://pantry-prod.onrender.com (`PROD_URL`) | pending first deployment |
+| dev | https://pantry-dev-twxv.onrender.com | live; deployed automatically on every merge to `main` |
+| prod | https://pantry-prod.onrender.com | live; same image as dev, after reviewer approval |
 
 > Free-tier notes: Render free web services sleep when idle (the first request after a pause takes about a minute) and share a monthly instance-hour allowance across services. Check current Render and Neon limits before relying on them; this repository does not depend on either provider's specifics beyond a Docker image and a Postgres URL.
 
