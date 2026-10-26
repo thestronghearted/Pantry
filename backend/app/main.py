@@ -101,7 +101,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.get("/health", include_in_schema=False)
     def health():
-        return {"status": "ok"}
+        return {"status": "ok", "version": settings.app_version}
 
     @app.get("/ready", include_in_schema=False)
     def ready():

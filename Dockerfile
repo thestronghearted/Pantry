@@ -17,7 +17,9 @@ COPY backend/ ./
 COPY --from=frontend /build/dist ./static
 RUN useradd --system --uid 10001 pantry && chown -R pantry /app
 USER pantry
-ENV STATIC_DIR=/app/static PORT=8000
+# CD passes the image tag so /health reports which build is serving (deploy.sh waits for it).
+ARG APP_VERSION=dev
+ENV STATIC_DIR=/app/static PORT=8000 APP_VERSION=${APP_VERSION}
 EXPOSE 8000
 HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=5 \
   CMD python -c "import os,urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\",\"8000\")}/health')"
